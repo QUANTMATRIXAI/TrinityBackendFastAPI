@@ -1,34 +1,34 @@
 version: '3.8'
 
 services:
-  backend-dev:
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: backend-dev
+    container_name: trinitybackendfastapi-dev-backend
     ports:
       - "9001:8000"
     environment:
-      - REDIS_HOST=redis-dev
-      - MINIO_ENDPOINT=minio-dev:9000
+      - REDIS_HOST=redis
+      - MINIO_ENDPOINT=minio:9000
     depends_on:
-      - redis-dev
-      - minio-dev
-      - mongodb-dev
+      - redis
+      - minio
+      - mongodb
     volumes:
       - .:/app
     restart: unless-stopped
 
-  redis-dev:
+  redis:
     image: redis:alpine
-    container_name: redis-dev
+    container_name: trinitybackendfastapi-dev-redis
     ports:
       - "9002:6379"
     restart: unless-stopped
 
-  minio-dev:
+  minio:
     image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-    container_name: minio-dev
+    container_name: trinitybackendfastapi-dev-minio
     ports:
       - "9003:9000"
       - "9004:9001"
@@ -37,20 +37,20 @@ services:
       - MINIO_ROOT_PASSWORD=minio123
     command: server /data --address ":9000" --console-address ":9001"
     volumes:
-      - minio_data_dev:/data
+      - trinitybackendfastapi_minio_data_dev:/data
     restart: unless-stopped
 
-  mongodb-dev:
+  mongodb:
     image: mongo:7.0
-    container_name: mongodb-dev
+    container_name: trinitybackendfastapi-dev-mongodb
     ports:
       - "9005:27017"
     environment:
       - MONGO_INITDB_DATABASE=app_dev
     volumes:
-      - mongodb_data_dev:/data/db
+      - trinitybackendfastapi_mongodb_data_dev:/data/db
     restart: unless-stopped
 
 volumes:
-  minio_data_dev:
-  mongodb_data_dev:
+  trinitybackendfastapi_minio_data_dev:
+  trinitybackendfastapi_mongodb_data_dev:
