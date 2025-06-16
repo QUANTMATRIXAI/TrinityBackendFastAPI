@@ -1,5 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from .config import settings
+# from .config import settings
 
 client = AsyncIOMotorClient("mongodb://admin_dev:pass_dev@10.2.1.65:9005/?authSource=admin")
 db = client["feature_overview_db"]
