@@ -11,7 +11,6 @@ text_router  = APIRouter()
 chart_maker_router = APIRouter()
 api_router.include_router(feature_overview_router)
 text_router.include_router(textbox_router)
-chart_maker_router.include_router(chart_router)
 
 api_router.include_router(groupby_router)
 api_router.include_router(transform_router)
