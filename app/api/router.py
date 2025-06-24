@@ -5,10 +5,14 @@ from app.features.chart_maker.Chart_Maker_API.app.routes import router as chart_
 from app.features.groupby_weighted_avg.endpoint import router as groupby_router
 from app.features.feature_transform.endpoint import router as transform_router
 from app.features.feature_create.endpoint import router as create_router
+from app.features.data_upload_validate.Validate_Atom.app.routes import router as validate_router
+from app.features.column_classify.routes import router as classify_router
+
 
 api_router = APIRouter()
 text_router  = APIRouter()
 chart_maker_router = APIRouter()
+
 api_router.include_router(feature_overview_router)
 text_router.include_router(textbox_router)
 
@@ -16,3 +20,5 @@ api_router.include_router(groupby_router)
 api_router.include_router(transform_router)
 api_router.include_router(create_router)
 
+api_router.include_router(validate_router)
+api_router.include_router(classify_router)

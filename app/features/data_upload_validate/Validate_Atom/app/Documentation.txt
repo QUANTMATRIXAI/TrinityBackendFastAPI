@@ -1,0 +1,2174 @@
+Name of Atom:
+Data Upload and Validate
+ 
+Small Description:
+The Data Upload and Validate Atom enables users to upload a master data file and automatically validate future file uploads against it. It includes pre-built templates for common analytics use cases and intelligently classifies data columns for streamlined analysis workflows.
+ 
+Keywords:
+data upload, file validation, master file, template validation, column classification, identifiers, measures, dimensions mapping, promo analysis, marketing mix modeling, category forecasting, data preprocessing, MinIO storage, MongoDB logging, data governance
+ 
+Working Process:
+User Perspective:
+When a user interacts with this Atom, they can either:
+ 
+Option 1: Upload a Custom Master File
+ 
+Upload Your Master File: You provide a primary dataset (like sales_master.csv) that serves as the validation template
+ 
+AI Analyzes Your Data: The system automatically examines your file structure, column types, and data patterns
+ 
+Define Your Business Dimensions: You specify key business dimensions like Product, Time Period, Market/Region, and the system maps your column identifiers to these dimensions
+ 
+Set Validation Rules: The Atom creates validation rules based on your master file's structure
+ 
+Option 2: Choose a Pre-Built Template
+You can select from three ready-made templates:
+ 
+Promo Analysis Template: For promotional campaign effectiveness studies
+ 
+Marketing Mix Modeling Template: For attribution and media spend optimization
+ 
+Category Forecasting Template: For demand planning and inventory management
+ 
+Behind the Scenes Process:
+File Processing: The system reads and analyzes the uploaded master file
+ 
+Intelligent Column Classification:
+ 
+Automatically separates columns into Identifiers (categorical data like product names, regions, dates)
+ 
+And Measures (numerical data like sales, revenue, quantities)
+ 
+Dimension Mapping: Assigns identifier columns to business dimensions you specify (e.g., Product_ID → Product dimension, Store_Location → Market dimension)
+ 
+Validation Schema Creation: Builds a validation framework for future file uploads
+ 
+Storage and Logging:
+ 
+Validation files are securely stored in MinIO cloud storage
+ 
+Column classifications, dimension mappings, and process logs are saved in MongoDB for tracking and reuse
+ 
+Future File Validation:
+When you upload subsequent files, the Atom automatically:
+ 
+Checks if new files match the master file structure
+ 
+Validates data types and formats
+ 
+Flags missing columns or data inconsistencies
+ 
+Ensures dimension mappings remain consistent
+ 
+Output / What We Get:
+This Atom generates several key outputs:
+ 
+Validated Master File Structure: A confirmed data schema that serves as your project's foundation
+ 
+Column Classification Report: Clear categorization of all columns as either identifiers or measures
+ 
+Dimension Mapping Configuration: Assignment of identifier columns to business dimensions (Product, Time, Market, etc.)
+ 
+Validation Rules: Automated checking criteria for future file uploads
+ 
+Storage Confirmation: Secure file storage in MinIO with MongoDB logging for audit trails
+ 
+Template Setup (if using pre-built options): Ready-to-use configurations for specific analytics use cases
+ 
+This output enables:
+ 
+Consistent Data Processing: All future files follow the same validated structure
+ 
+Streamlined Analysis: Pre-classified columns make filtering and selection in other Atoms much faster
+ 
+Error Prevention: Automatic validation catches data issues before they impact analysis
+ 
+Audit Trail: Complete logging for data governance and compliance
+ 
+Detailed Explanation:
+The Data Upload and Validate Atom serves as the foundational gateway for your entire analytics workflow. Think of it as setting up the "rules of the game" for all your data analysis activities.
+ 
+Why This Atom is Critical:
+Data Consistency: In business analytics, inconsistent data structure is one of the biggest productivity killers. This Atom ensures every file you work with follows the same validated format, eliminating hours of data cleaning later.
+ 
+Intelligent Automation: Instead of manually defining what each column represents every time you upload data, the system learns from your master file and automatically applies those learnings to future uploads.
+ 
+Real-World Use Cases:
+Scenario 1: Retail Chain Analytics
+Prompt: "I want to set up validation for my monthly store sales files using the Category Forecasting template."
+ 
+Process: You upload your master sales file (store_sales_jan.csv). The system identifies:
+ 
+Identifiers: Store_ID, Product_Category, Brand_Name, Month
+ 
+Measures: Sales_Amount, Units_Sold, Inventory_Level
+ 
+Dimension Mapping: Store_ID → Market, Product_Category → Product, Month → Time
+ 
+Result: When you upload February's data (store_sales_feb.csv), the system automatically validates it matches January's structure and flags any inconsistencies.
+ 
+Scenario 2: Marketing Campaign Analysis
+Prompt: "Set up validation for my promotional campaign data using the Promo Analysis template."
+ 
+Process: Your master file contains campaign performance data. The system maps:
+ 
+Identifiers: Campaign_ID, Channel, Region, Week
+ 
+Measures: Spend, Impressions, Clicks, Conversions
+ 
+Dimensions: Channel → Product, Region → Market, Week → Time
+ 
+Result: All future campaign files are automatically validated and ready for immediate analysis.
+ 
+Technical Architecture Benefits:
+MinIO Storage: Your validation files are stored in a scalable, secure cloud storage system that can handle large datasets efficiently.
+ 
+MongoDB Logging: All column classifications, dimension mappings, and validation logs are stored in a flexible NoSQL database, making it easy to track changes and maintain data lineage.
+ 
+Best Practices:
+Choose Representative Master Files: Use a complete, clean dataset as your master file - it sets the standard for all future uploads
+ 
+Define Clear Dimensions: Stick to 3-4 key business dimensions (Product, Time, Market are most common) rather than over-complicating
+ 
+Validate Early: Set up validation before you have many files to process - it's easier to establish standards upfront
+ 
+Use Templates When Possible: The pre-built templates incorporate industry best practices and save setup time
+ 
+Common Pitfalls to Avoid:
+Inconsistent Column Names: Ensure your master file uses clear, consistent column naming conventions
+ 
+Missing Key Identifiers: Make sure your master file includes all the identifier columns you'll need for future analysis
+ 
+Over-Classification: Don't create too many dimension categories - keep it simple and business-focused
+ 
+Integration with Other Atoms:
+This Atom is typically the first step in your workflow. The column classifications and dimension mappings it creates are automatically used by downstream Atoms like feature_overview, forecasting models, and visualization tools, making your entire analytics pipeline more efficient and error-free.
+ 
+The validation framework this Atom establishes becomes the foundation that ensures data quality and consistency across your entire analytics platform.
+
+
+
+Endpoints - 
+
+
+POST: /create_new - Create Validator Atom ID with Column Preprocessing
+====================================================================
+
+Purpose
+-------
+Creates a new validation atom ID by uploading data files (CSV/XLSX) and automatically 
+generating validation rules based on the file structure and data types.
+
+Input Parameters
+----------------
+Form Data:
+
+1. validator_atom_id (required, string)
+   - Unique identifier for the validator atom.
+   - Cannot be empty or contain only whitespace.
+
+2. files (required, List[UploadFile])
+   - Data files to process (CSV or XLSX format).
+   - Maximum 3 files supported.
+   - Supported formats: .csv, .xlsx.
+
+3. file_keys (required, string)
+   - JSON string containing keys/identifiers for each uploaded file.
+   - Must match the number of uploaded files.
+
+Process Flow
+------------
+1. Input Validation
+   - Validates that `validator_atom_id` is not empty.
+   - Ensures number of files matches number of keys.
+   - Restricts the maximum number of files to 3.
+   - Validates JSON format of `file_keys`.
+
+2. Column Preprocessing
+   - Strip leading/trailing whitespace from column names.
+   - Convert all column names to lowercase.
+   - Remove internal spaces while preserving underscores.
+     Example:
+       "User Name " → "username"
+       "user_id "   → "user_id"
+
+3. File Processing
+   - Reads each uploaded file into a pandas DataFrame.
+   - Applies column name preprocessing.
+   - Extracts data types for each column:
+     * numeric (int/float)
+     * date (datetime)
+     * boolean (bool)
+     * string (default)
+
+4. Schema Generation
+   - For each file, creates a schema containing:
+     * Column definitions with names and types
+     * Sample data (first 3 rows)
+     * Metadata (total rows and columns)
+     * Column type mapping
+
+5. Configuration Storage
+   - Local file: Saves as JSON in `CUSTOM_CONFIG_DIR/{validator_atom_id}.json`
+   - MongoDB: Stores validation configuration document
+   - Memory cache: Stores for quick access via GET endpoints
+
+Output Response
+---------------
+Success Response (HTTP 202)
+---------------------------
+{
+  "status": "success",
+  "message": "Validator atom created successfully",
+  "validator_atom_id": "your_validator_id",
+  "config_saved": true
+}
+
+Error Responses
+---------------
+HTTP 400 - Bad Request
+  - Empty `validator_atom_id`
+  - Invalid JSON in `file_keys`
+  - File count mismatch with keys
+  - Unsupported file format
+  - File parsing errors
+
+HTTP 500 - Internal Server Error
+  - Configuration save failures
+  - Database connection issues
+
+Generated Assets
+----------------
+- JSON Configuration File: `{validator_atom_id}.json`
+- MongoDB Document: Validation configuration
+- Memory Cache Entry: For runtime access
+- Schema Definitions: Column types and validation rules
+
+Supported File Formats
+----------------------
+- CSV: Comma-separated values
+- XLSX: Excel spreadsheet format
+
+Validation Mode
+---------------
+Default: `"simple"` validation mode
+  - Automatically infers column types from data
+  - Generates basic validation rules based on data structure
+
+
+
+GET: /view_new/{validator_atom_id} - Retrieve Validator Atom Schemas
+=====================================================================
+
+Purpose
+-------
+Retrieves the schema definitions for all file keys associated with a specific validator atom.
+Returns only the schema data without metadata or configuration details.
+
+Input Parameters
+----------------
+Path Parameters:
+
+1. validator_atom_id (required, string)
+   - Unique identifier of the validator atom to retrieve.
+   - Must match an existing validator atom ID created via `/create_new`.
+
+Process Flow
+------------
+1. Validation
+   - Checks if `validator_atom_id` exists in the memory cache (`extraction_results`).
+   - If not found, returns HTTP 404 error.
+
+2. Data Retrieval
+   - Fetches stored schema data from memory cache.
+   - Extracts only the `schemas` portion of the stored data.
+   - Filters out non-schema metadata such as:
+     * `config_saved`
+     * `config_path`
+     * `validator_atom_id`
+
+3. Response Formation
+   - Returns clean schema data for all associated file keys.
+   - No additional transformation or processing is applied.
+
+
+
+POST: /classify_columns - Classify Columns into Identifiers, Measures
+======================================================================================
+
+Purpose
+-------
+Automatically classifies data columns into three categories:
+  - Identifiers
+  - Measures
+  - Unclassified
+
+Uses keyword matching and data types for auto-classification, with optional user override.
+Supports both custom validator atoms and template-based validator atoms.
+
+Input Parameters
+----------------
+Form Data:
+
+1. validator_atom_id (required, string)
+   - Unique identifier of the validator atom.
+   - Must exist in MongoDB or memory cache.
+
+2. file_key (required, string)
+   - Specific file key within the validator atom to classify.
+   - Must match an existing file key in the validator's schema.
+
+3. identifiers (optional, string, default: "[]")
+   - JSON array of column names to override as identifiers.
+   - User-specified values take precedence over auto-classification.
+
+4. measures (optional, string, default: "[]")
+   - JSON array of column names to override as measures.
+   - User-specified values take precedence over auto-classification.
+
+5. unclassified (optional, string, default: "[]")
+   - JSON array of column names to override as unclassified.
+   - User-specified values take precedence over auto-classification.
+
+Process Flow
+------------
+1. Validator Validation
+   - Checks MongoDB for validator atom data.
+   - Falls back to memory cache if MongoDB is unavailable.
+   - Ensures `file_key` exists in schema.
+   - Extracts all columns and data types.
+
+2. User Override Processing
+   - Parses user-provided JSON strings into arrays.
+   - Validates columns exist in schema.
+   - Detects and prevents conflicts (columns in multiple categories).
+   - User overrides are prioritized over automatic classification.
+
+3. Auto-Classification Logic
+   - Keyword-based classification:
+
+     Identifier Keywords:
+       id, name, brand, market, category, region, channel, date, time, year, 
+       week, month, variant, ppg, type, code, packsize, packtype
+
+     Measure Keywords:
+       sales, revenue, volume, amount, value, price, cost, profit, units, 
+       d1, d2, d3, d4, d5, d6, salesvalue, baseprice, promoprice
+
+   - Classification Rules:
+     * Identifiers: match identifier keywords.
+     * Measures: match measure keywords or are numeric.
+     * Unclassified: all remaining columns.
+
+4. Confidence Score Calculation
+   - User-specified columns: 1.0 (100%)
+   - Keyword match: 0.9 (90%)
+   - Numeric type: 0.7 (70%)
+   - Default fallback: 0.5 (50%)
+
+5. Data Persistence
+   - MongoDB: stores classification record with metadata.
+   - Memory Cache: runtime storage for faster access.
+   - Timestamp: stored in ISO 8601 format.
+
+Output Response
+---------------
+Success Response (HTTP 200)
+---------------------------
+{
+  "status": "success",
+  "classified_columns": {
+    "identifiers": [
+      {"column": "region", "confidence": 1.0},
+      ...
+    ],
+    "measures": [
+      {"column": "sales", "confidence": 0.9},
+      ...
+    ],
+    "unclassified": [
+      {"column": "remarks", "confidence": 0.5},
+      ...
+    ]
+  },
+  "validator_atom_id": "your_validator_id",
+  "file_key": "your_file_key"
+}
+
+Error Responses
+---------------
+HTTP 400 - Bad Request
+  - Invalid or missing `file_key`
+  - Invalid JSON in override parameters
+  - Column listed in multiple categories
+  - Unknown column name in override list
+  - Internal classification conflicts
+
+HTTP 500 - Internal Server Error
+  - MongoDB save failure
+  - Database connection issues
+
+Classification Categories
+-------------------------
+1. Identifiers (Dimensions)
+   - Purpose: Used for grouping/filtering (e.g., region, category)
+   - Characteristics: Non-numeric, descriptive
+
+2. Measures
+   - Purpose: Used in aggregations/calculations (e.g., sales, volume)
+   - Characteristics: Numeric, measurable
+
+3. Unclassified
+   - Purpose: Columns that do not clearly fit other categories
+   - Characteristics: Descriptive, textual, or mixed data types
+
+Key Features
+------------
+- Dual Validator Support:
+  * Supports both custom (/create_new) and template (/validate_*) validators.
+
+- User Override Priority:
+  * User input always takes precedence.
+  * Auto-classification applies only to unspecified columns.
+
+- Confidence Scoring:
+  * Helps assess certainty of each classification.
+  * Guides manual review if needed.
+
+- Data Persistence:
+  * MongoDB for durability.
+  * Memory cache for performance.
+  * Graceful degradation if memory fails.
+
+
+POST: /define_dimensions - Define Business Dimensions
+======================================================
+
+Purpose
+-------
+Defines up to 4 business dimensions for a specific file key in a validator atom.
+Supports both:
+  - Custom validator atoms (created via /create_new)
+  - Template validator atoms (from /validate_* endpoints)
+
+Input Parameters
+----------------
+Form Data:
+
+1. validator_atom_id (required, string)
+   - Unique identifier of the validator atom.
+   - Must exist in MongoDB or in-memory cache.
+
+2. file_key (required, string)
+   - Specific file key within the validator's schema.
+   - Must match an existing file key in the validator's stored schema.
+
+3. dimensions (required, string)
+   - JSON array of dimension objects (maximum 4 allowed).
+   - Each dimension object must contain:
+     * id   (string, unique): Dimension identifier
+     * name (string, unique): Human-readable dimension name
+
+Example Input
+-------------
+[
+  {"id": "region", "name": "Region"},
+  {"id": "category", "name": "Category"},
+  {"id": "brand", "name": "Brand"},
+  {"id": "channel", "name": "Sales Channel"}
+]
+
+Process Flow
+------------
+1. Input Parsing and Validation
+   - Parses `dimensions` as JSON array.
+   - Ensures non-empty list of objects.
+   - Enforces maximum of 4 dimensions.
+   - Validates each dimension contains non-empty `id` and `name`.
+   - Prevents duplicate IDs or names.
+
+2. Validator Existence Check
+   - Looks up validator in MongoDB via `get_validator_atom_from_mongo`.
+   - Falls back to memory/disk via `get_validator_from_memory_or_disk`.
+   - Returns 404 if validator atom not found.
+
+3. File Key Validation
+   - Verifies that `file_key` exists in the validator's schema.
+   - Returns 400 if file key is invalid.
+
+4. Storage and Persistence
+   - Converts dimensions to dictionary format:
+     { "dimension_id": { "id": ..., "name": ... } }
+   - Stores to MongoDB via `save_business_dimensions_to_mongo`.
+   - Updates in-memory cache (`extraction_results`) for runtime access.
+   - In-memory failures are logged but non-blocking.
+
+Output Response
+---------------
+Success Response (HTTP 200)
+---------------------------
+{
+  "status": "success",
+  "message": "Business dimensions defined successfully for file key 'sales_file.csv' (2 dimensions)",
+  "validator_atom_id": "validator_123",
+  "file_key": "sales_file.csv",
+  "validator_type": "custom",
+  "dimensions": {
+    "region": {"id": "region", "name": "Region"},
+    "category": {"id": "category", "name": "Category"}
+  },
+  "dimensions_count": 2,
+  "max_allowed": 4,
+  "dimension_details": {
+    "dimension_ids": ["region", "category"],
+    "dimension_names": ["Region", "Category"],
+    "created_at": "2025-06-23T11:30:00"
+  },
+  "mongodb_saved": true,
+  "in_memory_saved": "success",
+  "next_steps": {
+    "assign_identifiers": "POST /assign_identifiers_to_dimensions with validator_atom_id: validator_123",
+    "view_assignments": "GET /get_identifier_assignments/validator_123/sales_file.csv"
+  }
+}
+
+Error Responses
+---------------
+HTTP 400 - Bad Request
+  - Invalid JSON format in `dimensions` parameter.
+  - `dimensions` is not a list/array.
+  - More than 4 dimensions provided.
+  - Missing required fields (`id` or `name`).
+  - Duplicate IDs or names in the request.
+  - Invalid or non-existent `file_key`.
+
+HTTP 404 - Not Found
+--------------------
+{
+  "detail": "Validator atom 'your_validator_id' not found"
+}
+
+HTTP 500 - Internal Server Error
+--------------------------------
+  - Failed to persist dimensions in MongoDB.
+  - Unexpected server errors during processing.
+  - In-memory update failures (logged but non-blocking).
+
+Business Dimensions Structure
+-----------------------------
+Dimension Object Format:
+{
+  "id": "unique_identifier",
+  "name": "Human Readable Name"
+}
+
+Storage Format:
+{
+  "dimension_id": {
+    "id": "dimension_id",
+    "name": "Dimension Name"
+  }
+}
+
+Key Features
+------------
+Dual Validator Support
+  - Custom validators: From `/create_new` endpoint.
+  - Template validators: From `/validate_*` endpoints.
+  - Automatic detection and handling for both.
+
+Validation Constraints
+  - Maximum 4 dimensions per file key.
+  - No duplicate IDs or names.
+  - Fields `id` and `name` must be non-empty.
+  - Validates `file_key` against validator schema.
+
+Storage Strategy
+----------------
+  - Primary: MongoDB for long-term persistence.
+  - Secondary: In-memory cache for runtime performance.
+  - Fault tolerance: Continues if in-memory update fails.
+
+Integration Workflow
+--------------------
+  - Define dimensions: This endpoint
+  - Assign identifiers: `/assign_identifiers_to_dimensions`
+  - View assignments: `/get_identifier_assignments/{validator_atom_id}/{file_key}`
+
+Use Cases
+---------
+  - Business Intelligence: Define dimensions for analytical slicing.
+  - Data Modeling: Establish dimensions for OLAP-style schemas.
+  - Validation Setup: Prepare structural definitions for data validation.
+  - Schema Organization: Group related columns under named dimensions.
+
+
+
+POST: /assign_identifiers_to_dimensions - Assign Identifiers to Business Dimensions
+====================================================================================
+
+Purpose
+-------
+Assigns classified identifier columns to previously defined business dimensions and
+saves the assignments in the business dimensions structure.  
+Supports both:
+  - Custom validator atoms (from /create_new)
+  - Template validator atoms (from /validate_* endpoints)
+
+Input Parameters
+----------------
+Form Data:
+
+1. validator_atom_id (required, string)
+   - Unique identifier of the validator atom.
+   - Must exist in MongoDB or in-memory cache.
+
+2. file_key (required, string)
+   - Specific file key within the validator's schema.
+   - Must have defined business dimensions and classified columns.
+
+3. identifier_assignments (required, string)
+   - JSON object mapping dimension IDs to arrays of identifier column names.
+   - Each dimension can have multiple identifiers.
+   - All identifiers must be from previously classified identifier columns.
+
+Example Input
+-------------
+{
+  "region": ["market", "geography"],
+  "category": ["brand", "category_name"],
+  "time": ["year", "month", "week"],
+  "channel": ["sales_channel"]
+}
+
+Process Flow
+------------
+1. Input Parsing and Validation
+   - Parses `identifier_assignments` as a JSON object.
+   - Ensures non-empty dictionary format.
+   - Each dimension must be mapped to a non-empty list of identifiers.
+
+2. Validator Existence Check
+   - Primary: MongoDB via `get_validator_atom_from_mongo`
+   - Fallback: Memory/disk via `get_validator_from_memory_or_disk`
+   - Verifies `file_key` exists in validator's schemas.
+
+3. Business Dimensions Retrieval
+   - Primary: MongoDB via `get_business_dimensions_from_mongo`
+   - Fallback: legacy format
+   - Ensures dimensions exist for specified `file_key`.
+
+4. Classification Data Retrieval
+   - Primary: MongoDB via `get_classification_from_mongo`
+   - Fallback: Memory/disk
+   - Extracts available identifiers from `final_classification.identifiers`.
+
+5. Assignment Validation
+   - Ensures all dimension IDs exist in defined dimensions.
+   - Ensures all assigned identifiers are valid and classified.
+   - Prevents identifiers from being assigned to multiple dimensions.
+   - Each dimension must have at least one assigned identifier.
+
+6. Data Update and Persistence
+   - Adds `assigned_identifiers` and `assignment_timestamp` to each dimension.
+   - Saves updated structure to MongoDB via `update_business_dimensions_assignments_in_mongo`.
+   - Updates in-memory `extraction_results`.
+   - Memory update failures are logged but non-blocking.
+
+Output Response
+---------------
+Success Response (HTTP 200)
+---------------------------
+{
+  "status": "success",
+  "message": "Identifiers assigned to dimensions and saved in business dimensions structure for file key 'sales_data.csv'",
+  "validator_atom_id": "validator_123",
+  "file_key": "sales_data.csv",
+  "validator_type": "custom",
+  "updated_business_dimensions": {
+    "region": {
+      "id": "region",
+      "name": "Region",
+      "assigned_identifiers": ["market", "geography"],
+      "assignment_timestamp": "2025-06-23T11:30:00"
+    },
+    "category": {
+      "id": "category",
+      "name": "Category",
+      "assigned_identifiers": ["brand", "category_name"],
+      "assignment_timestamp": "2025-06-23T11:30:00"
+    }
+  },
+  "assignment_summary": {
+    "total_identifiers": 8,
+    "assigned_identifiers": 4,
+    "unassigned_identifiers": 4,
+    "dimensions_with_assignments": 2,
+    "assignment_timestamp": "2025-06-23T11:30:00"
+  },
+  "unassigned_identifiers": ["date", "product_id", "customer_type", "region_code"],
+  "dimension_breakdown": {
+    "region": 2,
+    "category": 2
+  },
+  "mongodb_updated": true,
+  "in_memory_updated": "success",
+  "next_steps": {
+    "view_complete_setup": "GET /get_validator_atom_summary/validator_123",
+    "export_configuration": "GET /export_validator_atom/validator_123"
+  }
+}
+
+Error Responses
+---------------
+HTTP 400 - Bad Request
+  - Invalid JSON format in `identifier_assignments`
+  - Empty assignments object
+  - Dimension IDs not found in business dimensions
+  - Identifiers not found in classified identifiers
+  - Duplicate identifier assignments
+  - Empty identifier lists
+  - Missing business dimensions (must call `/define_dimensions` first)
+  - Missing column classification (must call `/classify_columns` first)
+
+HTTP 404 - Not Found
+--------------------
+{
+  "detail": "Validator atom 'your_validator_id' not found"
+}
+
+HTTP 500 - Internal Server Error
+--------------------------------
+  - MongoDB update failure
+  - Database connection issues
+  - Unexpected internal processing errors
+
+Prerequisites
+-------------
+Required Prior Steps:
+  - `/create_new` or `/validate_*`
+  - `/classify_columns` (must have identifiers)
+  - `/define_dimensions` (must define business dimensions)
+
+Data Dependencies:
+  - Business dimensions must exist for `file_key`
+  - Classification must include identifier columns
+  - Validator schema must contain `file_key`
+
+Assignment Rules
+----------------
+Validation Constraints:
+  - Each identifier can only belong to one dimension
+  - Each dimension must have at least one identifier
+  - All identifiers must be classified
+  - All dimension IDs must be defined
+
+Data Structure Updates:
+  - Each dimension is updated with:
+    * assigned_identifiers: List of identifier columns
+    * assignment_timestamp: ISO timestamp
+
+Key Features
+------------
+Dual Validator Support:
+  - Custom: Full support with MongoDB + memory
+  - Template: Auto-initializes memory structures if needed
+  - Backward compatible with legacy format
+
+Flexible Assignment:
+  - Multiple identifiers allowed per dimension
+  - Supports partial assignments
+  - Tracks unassigned identifiers
+
+Robust Validation:
+  - Cross-validates assignments with classification and dimensions
+  - Ensures completeness and correctness
+  - Prevents identifier duplication across dimensions
+
+Integration Workflow
+--------------------
+Previous Steps:
+  - `/classify_columns`
+  - `/define_dimensions`
+
+Next Steps:
+  - `/get_validator_atom_summary/{validator_atom_id}`
+  - `/export_validator_atom/{validator_atom_id}`
+
+Use Cases
+---------
+  - Data Modeling: Map identifiers to business dimensions
+  - Analytics Setup: Prepare structure for OLAP/BI
+  - Validation Configuration: Define full dimension-to-column mapping
+  - Business Intelligence: Enable structured slicing and filtering
+
+
+
+
+POST: /configure_validation_config - Configure Custom Validation Rules
+========================================================================
+
+Purpose
+-------
+Configures custom validation conditions and optional data frequencies for specific columns
+within a validator atom's file schema. Enables advanced rule setup beyond basic type validation.
+
+Input Parameters
+----------------
+JSON Request Body:
+
+1. validator_atom_id (required, string)
+   - Unique identifier of the validator atom.
+   - Must exist in MongoDB or memory cache.
+
+2. file_key (required, string)
+   - Specific file key within the validator's schema.
+   - Must match an existing file key.
+
+3. column_conditions (required, object)
+   - Dictionary mapping column names to lists of validation conditions.
+   - Each column can have multiple rules.
+   - All columns must exist in the validator schema.
+
+4. column_frequencies (optional, object, default: {})
+   - Dictionary mapping column names to data frequency strings.
+   - Valid values: ["daily", "weekly", "monthly"].
+
+Example Input
+-------------
+{
+  "validator_atom_id": "sales_validator_123",
+  "file_key": "sales_data.csv",
+  "column_conditions": {
+    "sales_amount": [
+      {
+        "operator": "greater_than",
+        "value": 0,
+        "error_message": "Sales amount must be positive",
+        "severity": "error"
+      },
+      {
+        "operator": "less_than_or_equal",
+        "value": 1000000,
+        "error_message": "Sales amount exceeds maximum limit",
+        "severity": "warning"
+      }
+    ],
+    "region": [
+      {
+        "operator": "in_list",
+        "value": ["North", "South", "East", "West"],
+        "error_message": "Invalid region specified",
+        "severity": "error"
+      }
+    ]
+  },
+  "column_frequencies": {
+    "sales_date": "daily",
+    "week_ending": "weekly"
+  }
+}
+
+Validation Operators
+---------------------
+Numeric:
+  - greater_than, greater_than_or_equal, less_than, less_than_or_equal, equal_to,
+    not_equal_to, between
+
+String:
+  - contains, not_contains, starts_with, ends_with, regex_match
+
+List:
+  - in_list, not_in_list
+
+Date:
+  - date_before, date_after, date_between
+
+Process Flow
+------------
+1. Input Validation
+   - Validates presence of required fields: `validator_atom_id`, `file_key`, `column_conditions`.
+   - Validates `column_conditions` and `column_frequencies` are dictionaries.
+   - Ensures frequency values (if provided) are among valid options.
+
+2. Validator Existence Check
+   - Primary: MongoDB via `get_validator_atom_from_mongo`.
+   - Fallback: Memory/disk via `get_validator_from_memory_or_disk`.
+   - Validates that `file_key` exists in schema.
+
+3. Column Validation
+   - All columns in `column_conditions` must exist in validator schema.
+   - Reports available columns if a mismatch occurs.
+
+4. Condition Structure Validation
+   - Each column’s conditions must be a list of valid objects.
+   - Each rule must include:
+     * operator (required)
+     * value (required)
+     * error_message (required)
+   - Severity defaults to "error" if not provided.
+   - Only valid operators and severity values allowed.
+
+5. Configuration Storage
+   - Combines `column_conditions` and `column_frequencies`.
+   - Saves configuration using `save_validation_config_to_mongo`.
+   - Tracks insert vs update operations.
+
+6. Response Generation
+   - Computes total number of conditions across columns.
+   - Returns list of columns with rules and frequency metadata.
+
+Output Response
+---------------
+Success Response (HTTP 200)
+---------------------------
+{
+  "status": "success",
+  "message": "Validation config configured successfully for file key 'sales_data.csv' with 3 conditions and frequencies specified for columns: ['sales_date', 'week_ending']",
+  "validator_atom_id": "sales_validator_123",
+  "file_key": "sales_data.csv",
+  "mongo_id": "60f8d2e4c8b1a2d3e4f5g6h7",
+  "operation": "insert",
+  "total_conditions": 3,
+  "columns_configured": ["sales_amount", "region"],
+  "columns_with_frequencies": ["sales_date", "week_ending"],
+  "mongodb_saved": true
+}
+
+Error Responses
+---------------
+HTTP 400 - Bad Request
+  - Missing required fields: `validator_atom_id`, `file_key`, `column_conditions`.
+  - Invalid data types for request fields.
+  - Invalid frequency values (not in ["daily", "weekly", "monthly"]).
+  - Columns not found in schema.
+  - Invalid condition format or missing required fields.
+  - Unsupported validation operator.
+  - Invalid severity values.
+
+HTTP 404 - Not Found
+--------------------
+{
+  "detail": "Validator atom 'your_validator_id' not found"
+}
+
+HTTP 500 - Internal Server Error
+--------------------------------
+  - MongoDB save failures.
+  - Database connectivity issues.
+  - Unexpected processing exceptions.
+
+Condition Object Structure
+--------------------------
+Required Fields:
+  - operator (string): Validation operator from supported list.
+  - value (any): Value or constraint for comparison.
+  - error_message (string): Custom message on failure.
+
+Optional Fields:
+  - severity (string, default: "error"):
+    * "error" = blocks processing
+    * "warning" = logs warning but allows processing
+
+Valid Frequencies
+-----------------
+  - daily: Validates for daily expected patterns
+  - weekly: Validates for weekly data cycles
+  - monthly: Validates for monthly intervals
+
+Key Features
+------------
+Flexible Validation Rules
+  - Multiple conditions per column.
+  - Supports numeric, string, list, and date-based rules.
+  - Custom error messages for clarity.
+  - Severity levels to differentiate blocking vs non-blocking rules.
+
+Time-Series Support
+  - Optional frequency configuration for time-related columns.
+  - Daily, weekly, and monthly data expectations.
+
+Robust Validation
+  - Ensures schema column compliance.
+  - Validates structure, operators, and severity.
+  - Detailed error reporting for troubleshooting.
+
+MongoDB Integration
+  - Saves full configuration to MongoDB.
+  - Returns operation type (insert/update) and document ID.
+
+Use Cases
+---------
+  - Business Rule Enforcement: Domain-specific rules.
+  - Data Quality: Enforce acceptable ranges and values.
+  - Pattern Enforcement: Regex and string rules.
+  - Time-Series Validation: Validate by expected frequency.
+
+Integration Points
+------------------
+Prerequisites:
+  - Validator atom must be created.
+  - Column schema must be present (via /create_new or /validate_*).
+
+Downstream:
+  - Validator exports will include custom rule config.
+  - File uploads will enforce validation conditions.
+
+Optional Usage:
+  - This endpoint is not mandatory for basic type validation.
+
+
+
+
+POST: /validate - Enhanced File Validation with Auto-Correction
+================================================================
+
+Purpose
+-------
+Performs comprehensive validation of uploaded files against a previously configured validator atom.
+Includes:
+  - Mandatory column checking
+  - Data type validation
+  - Auto-correction
+  - Custom condition validation
+  - MinIO file storage
+  - Detailed MongoDB logging
+
+Input Parameters
+----------------
+Form Data:
+
+1. validator_atom_id (required, string)
+   - Unique identifier of the validator atom.
+   - Must exist in MongoDB or memory cache with complete configuration.
+
+2. files (required, List[UploadFile])
+   - Data files to validate (.csv or .xlsx only).
+   - Maximum 3 files allowed.
+   - File content is validated against validator atom schemas.
+
+3. file_keys (required, string)
+   - JSON array of keys for each uploaded file.
+   - Must match number of uploaded files.
+   - Keys should match configured schemas in the validator atom.
+
+4. date_frequency (optional, string)
+   - Used with column frequency configuration for time-series validation.
+   - Valid values: ["daily", "weekly", "monthly"]
+
+Example Input
+-------------
+validator_atom_id: "sales_validator_123"  
+files: [sales_data.csv, inventory_data.xlsx]  
+file_keys: ["sales_file", "inventory_file"]  
+date_frequency: "daily"
+
+Process Flow
+------------
+1. Input Validation and Parsing
+   - Parses file_keys as a JSON array.
+   - Ensures the number of files matches the number of keys (max 3).
+   - Supports only .csv and .xlsx formats.
+
+2. Validator Configuration Retrieval
+   - Primary: MongoDB via `get_validator_atom_from_mongo`.
+   - Fallback: Memory/disk via `get_validator_from_memory_or_disk`.
+   - Injects `validator_atom_id` into validator config for use in custom rules.
+
+3. File Processing and Column Preprocessing
+   - Loads file into memory and converts to pandas DataFrame.
+   - Applies preprocessing:
+     * Strip whitespace
+     * Lowercase conversion
+     * Replace internal spaces with underscores
+
+4. Enhanced Validation Process (via `perform_enhanced_validation`)
+   - Mandatory column checking.
+   - Data type validation.
+   - Auto-correction (whitespace cleanup, format standardization).
+   - Custom condition validation (rule-based).
+   - Business dimension validation.
+
+5. MinIO File Storage
+   - Files are uploaded **only** if they pass or pass with warnings.
+   - Files are organized by `validator_atom_id/file_key/filename`.
+   - Upload results are tracked per file.
+
+6. MongoDB Validation Logging
+   - Records complete validation logs:
+     * Errors, warnings, and auto-corrections
+     * Metrics: columns checked, condition failures
+     * File size and validation duration
+     * Upload success/failure
+   - Stores to validation log collection with `validation_log_id`.
+
+Output Response
+---------------
+Success Response (HTTP 200)
+---------------------------
+{
+  "overall_status": "passed_with_warnings",
+  "validator_atom_id": "sales_validator_123",
+  "file_validation_results": {
+    "sales_file": {
+      "status": "passed_with_warnings",
+      "errors": [],
+      "warnings": [
+        {
+          "column": "sales_amount",
+          "row": 15,
+          "message": "Sales amount exceeds recommended limit",
+          "severity": "warning"
+        }
+      ],
+      "auto_corrections": [
+        {
+          "column": "region",
+          "row": 8,
+          "original_value": "NORTH ",
+          "corrected_value": "north",
+          "correction_type": "column_preprocessing"
+        }
+      ],
+      "condition_failures": [
+        {
+          "column": "category",
+          "row": 22,
+          "condition": "in_list",
+          "expected": ["A", "B", "C"],
+          "actual": "D",
+          "error_message": "Invalid category specified"
+        }
+      ],
+      "columns_checked": 12,
+      "data_corrections_applied": 3,
+      "custom_conditions_failed": 1
+    }
+  },
+  "summary": {
+    "total_auto_corrections": 3,
+    "total_condition_failures": 1,
+    "files_passed": 0,
+    "files_passed_with_warnings": 1,
+    "files_failed": 0
+  },
+  "minio_uploads": [
+    {
+      "file_key": "sales_file",
+      "filename": "sales_data.csv",
+      "minio_upload": {
+        "status": "success",
+        "bucket": "validation-files",
+        "object_name": "sales_validator_123/sales_file/sales_data.csv",
+        "upload_id": "upload_12345"
+      }
+    }
+  ],
+  "validation_log_saved": true,
+  "validation_log_id": "60f8d2e4c8b1a2d3e4f5g6h7",
+  "total_auto_corrections": 3,
+  "total_condition_failures": 1
+}
+
+Error Responses
+---------------
+HTTP 400 - Bad Request
+  - Invalid JSON format in file_keys
+  - Mismatch between files and keys
+  - More than 3 files
+  - Unsupported file format
+  - File parsing errors
+
+HTTP 404 - Not Found
+--------------------
+{
+  "detail": "Validator atom 'your_validator_id' not found"
+}
+
+Validation Status Types
+------------------------
+Overall Status:
+  - passed: All files validated successfully
+  - passed_with_warnings: Validated with minor issues
+  - failed: One or more files failed critical validations
+
+File-Level Status:
+  - passed
+  - passed_with_warnings
+  - failed
+
+Validation Components
+---------------------
+1. Mandatory Column Checking
+2. Data Type Validation
+3. Auto-Correction:
+   - Column preprocessing
+   - Format standardization
+   - Data type coercion
+   - Whitespace cleanup
+4. Custom Condition Validation:
+   - Numeric ranges, list inclusion, regex patterns, date constraints
+5. Business Dimension Validation
+
+File Storage Integration
+------------------------
+- Files uploaded to MinIO only if status is `passed` or `passed_with_warnings`.
+- Stored under: `bucket/validator_atom_id/file_key/filename`
+- Upload results included in response.
+
+MongoDB Logging
+---------------
+Validation Log Contains:
+  - File-level status
+  - Auto-correction records
+  - Validation failures
+  - Performance stats
+  - Upload results
+  - Summary statistics
+
+Key Features
+------------
+- Multi-layer validation (schema, types, rules, dimensions)
+- Intelligent auto-correction
+- Warning vs error classification
+- Real-time MinIO upload for validated files
+- Full validation history in MongoDB
+
+Use Cases
+---------
+- Data Quality Checks: Validate uploaded files before further processing
+- ETL Pipelines: Block bad data and clean accepted data
+- Business Rule Enforcement: Apply regulatory and custom rules
+- Reporting Pipelines: Ensure dimensional consistency
+- Automated Pre-Processing: Clean and validate before ingestion
+
+Integration Workflow
+---------------------
+1. Prerequisite: Create and configure validator atom.
+2. Use this endpoint to validate and upload data.
+3. Validated files are available in MinIO.
+4. Validation logs are accessible via MongoDB.
+
+
+POST: /validate_mmm - MMM Template Validation with Full Integration
+====================================================================
+
+Purpose
+-------
+Validates files using Media Mix Modeling (MMM) rules and initializes the validator atom 
+workflow with automatic schema extraction, MinIO file storage, and MongoDB integration.
+
+Input Parameters
+----------------
+Form Data:
+
+1. files (required, List[UploadFile])
+   - Exactly 2 files required (.csv or .xlsx formats).
+   - Must represent:
+     * media dataset
+     * sales dataset
+   - Files cannot be empty.
+
+2. file_keys (required, string)
+   - JSON array of keys: ["media", "sales"]
+   - Order must correspond to uploaded files.
+
+Example Input
+-------------
+files: [media_data.csv, sales_data.xlsx]  
+file_keys: ["media", "sales"]
+
+Process Flow
+------------
+1. Input Validation and Parsing
+   - Parses `file_keys` as a JSON array.
+   - Validates that exactly 2 files are uploaded.
+   - Ensures `file_keys` are exactly: ["media", "sales"].
+   - Supports .csv and .xlsx file formats.
+
+2. File Processing and Column Preprocessing
+   - Reads files into memory and converts to pandas DataFrames.
+   - Applies MMM-specific column preprocessing:
+     * Strip whitespace
+     * Lowercase conversion
+     * Replace spaces and hyphens with underscores
+     * Remove leading/trailing and double underscores
+
+3. MMM-Specific Validation
+   - Executes `validate_mmm()` including:
+     * Media dataset checks (channels, spend values, date structure)
+     * Sales dataset checks (revenue fields, date structure, completeness)
+     * Cross-dataset validation (alignment, relationship checks)
+     * Incrementality readiness validation
+
+4. Auto-Generated Validator Atom Creation
+   - Upon success:
+     * Generates unique validator_atom_id (e.g., mmm_template_20250623_1130)
+     * Automatically extracts schema from both datasets
+     * Infers column types: numeric, string, datetime
+     * Marks atom as MMM template
+
+5. MinIO File Storage
+   - Files uploaded only on successful validation.
+   - Stored by: validator_atom_id/file_key/filename
+   - Upload success tracked and returned in response.
+
+6. MongoDB Integration
+   - Stores:
+     * Validator atom with schema and template metadata
+     * Validation log with file-level results and performance
+     * Template linkage for classification and dimension readiness
+
+Output Response
+---------------
+Success Response (HTTP 200)
+---------------------------
+{
+  "overall_status": "passed",
+  "validation_type": "mmm_template",
+  "validator_atom_id": "mmm_template_20250623_1130",
+  "file_validation_results": {
+    "media": {
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "successes": [...],
+      "columns_checked": 15,
+      "records_count": 1000,
+      "columns_found": [...]
+    },
+    "sales": {
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "successes": [...],
+      "columns_checked": 8,
+      "records_count": 1000,
+      "columns_found": [...]
+    }
+  },
+  "summary": {
+    "total_files": 2,
+    "media_records": 1000,
+    "sales_records": 1000,
+    "validation_checks_performed": 12
+  },
+  "mmm_specific_results": {
+    "media_columns_validated": 4,
+    "sales_columns_validated": 3
+  },
+  "minio_uploads": [
+    {
+      "file_key": "media",
+      "filename": "media_data.csv",
+      "minio_upload": {
+        "status": "success",
+        "bucket": "validation-files",
+        "object_name": "mmm_template_20250623_1130/media/media_data.csv"
+      }
+    },
+    {
+      "file_key": "sales",
+      "filename": "sales_data.xlsx",
+      "minio_upload": {
+        "status": "success",
+        "bucket": "validation-files",
+        "object_name": "mmm_template_20250623_1130/sales/sales_data.xlsx"
+      }
+    }
+  ],
+  "validation_log_saved": true,
+  "validation_log_id": "60f8d2e4c8b1a2d3e4f5g6h7",
+  "template_integration": {
+    "validator_atom_saved": true,
+    "classify_columns_ready": true,
+    "available_file_keys": ["media", "sales"],
+    "next_steps": {
+      "classification_media": "POST /classify_columns with validator_atom_id: mmm_template_20250623_1130, file_key: media",
+      "classification_sales": "POST /classify_columns with validator_atom_id: mmm_template_20250623_1130, file_key: sales",
+      "dimensions_media": "POST /define_dimensions with validator_atom_id: mmm_template_20250623_1130, file_key: media",
+      "dimensions_sales": "POST /define_dimensions with validator_atom_id: mmm_template_20250623_1130, file_key: sales"
+    }
+  },
+  "files_processed": {
+    "media": {
+      "filename": "media_data.csv",
+      "size_bytes": 245760
+    },
+    "sales": {
+      "filename": "sales_data.xlsx",
+      "size_bytes": 189440
+    }
+  }
+}
+
+Error Responses
+---------------
+HTTP 400 - Bad Request
+  - Invalid JSON in `file_keys`
+  - Incorrect number of files (must be exactly 2)
+  - Missing required keys ('media', 'sales')
+  - Unsupported file formats
+  - Empty files or datasets
+  - File parsing failure
+
+HTTP 500 - Internal Server Error
+-------------------------------
+{
+  "detail": "MMM validation failed: [specific error message]"
+}
+
+MMM Validation Components
+-------------------------
+Media Dataset Validation:
+  - Required columns (e.g., date, tv_spend, etc.)
+  - Spend fields must be numeric and complete
+  - Date field formatting and granularity checks
+
+Sales Dataset Validation:
+  - Revenue and performance field presence
+  - Category/dimension coverage (region, category, etc.)
+  - Date structure and completeness
+
+Cross-Dataset Validation:
+  - Aligned time ranges between media and sales
+  - Matching date frequencies
+  - Logical relationships and completeness for MMM use
+
+Template Integration Features
+-----------------------------
+Automatic Schema Generation:
+  - Auto-detection of columns and data types
+  - Schema for both media and sales datasets
+  - MMM metadata tagging
+
+Workflow Preparation:
+  - Enables downstream classification (/classify_columns)
+  - Enables dimension setup (/define_dimensions)
+  - Provides actionable next steps in response
+
+Key Features
+------------
+MMM-Specific Validation:
+  - Domain rules for incrementality, channel investment, media structure
+
+Template Atom Initialization:
+  - Full validator atom generation
+  - Complete schema inference
+  - Mongo + MinIO integration
+
+Full Integration:
+  - MinIO upload for validated data
+  - MongoDB logging with template tagging
+  - Seamless downstream readiness (classify, dimensions, etc.)
+
+Use Cases
+---------
+  - Media Mix Modeling setup and onboarding
+  - Standardized MMM validation for project templates
+  - Initial QA for media/sales integration
+  - Campaign validation before statistical modeling
+
+Validation Standards
+--------------------
+Follows best practices from:
+  - Incrementality test preparation
+  - MMM schema expectations
+
+Integration Workflow
+--------------------
+1. Call /validate_mmm to validate and initialize template
+2. Follow up with:
+   - /classify_columns for media/sales separately
+   - /define_dimensions to set up dimensional structure
+3. Use export or summary endpoints for full configuration trace
+
+
+POST: /validate_category_forecasting - Category Forecasting Template Validation
+===============================================================================
+
+Purpose
+-------
+Validates a single dataset using Category Forecasting (CF) rules and initializes the full validator atom
+setup including schema generation, MinIO upload, MongoDB logging, and readiness for classification and dimension definition workflows.
+
+Input Parameters
+----------------
+Form Data:
+
+1. files (required, List[UploadFile])
+   - Exactly 1 file required (.csv or .xlsx)
+   - Must contain valid category forecasting data
+   - File must not be empty
+
+2. file_keys (required, string)
+   - JSON array with exactly 1 key (e.g., ["forecast_data"])
+   - Key serves as an identifier for the forecasting dataset
+
+3. date_col (optional, string, default: "Date")
+   - Name of the date column used for time-series validation
+
+4. fiscal_start_month (optional, integer, default: 4)
+   - Fiscal year start month (1–12)
+   - Default is April (4)
+
+Example Input
+-------------
+files: [category_forecast_data.csv]  
+file_keys: ["forecast_data"]  
+date_col: "Date"  
+fiscal_start_month: 4
+
+Process Flow
+------------
+1. Input Validation and Parsing
+   - Parses `file_keys` as a JSON array
+   - Validates exactly 1 file and 1 file key
+   - Checks that fiscal_start_month is between 1 and 12
+   - Validates file format (.csv or .xlsx)
+
+2. File Processing and Column Preprocessing
+   - Reads the file into memory as a pandas DataFrame
+   - Applies minimal preprocessing:
+     * Strips whitespace from column names
+     * Preserves casing and structure
+   - Validates dataset is not empty
+
+3. Category Forecasting Validation
+   - Date column existence and formatting
+   - Categorical dimension validation (e.g., Category, Region)
+   - Fiscal year alignment checks
+   - Data completeness and outlier detection
+   - Time-series structure and forecasting readiness
+
+4. Auto-Generated Validator Atom Creation
+   - On successful validation:
+     * Creates a unique ID: `category_forecasting_template_YYYYMMDD_HHMMSS`
+     * Extracts schema with column types
+     * Marks template as CF type
+     * Stores metadata for downstream workflows
+
+5. MinIO File Storage
+   - Files are uploaded **only** on successful validation
+   - Stored in: `validator_atom_id/file_key/filename`
+   - Upload result metadata returned
+
+6. MongoDB Integration
+   - Saves:
+     * Validator atom (schema + metadata)
+     * Validation logs (metrics, errors, summaries)
+     * Flags readiness for classify/dimension steps
+
+Output Response
+---------------
+Success Response (HTTP 200)
+---------------------------
+{
+  "overall_status": "passed",
+  "validation_type": "category_forecasting_template",
+  "validator_atom_id": "category_forecasting_template_20250623_1130",
+  "file_validation_results": {
+    "forecast_data": {
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "successes": [
+        "Date column 'Date' found and validated",
+        "Category dimensions properly structured",
+        "Fiscal year alignment confirmed",
+        "Forecasting data quality validated"
+      ],
+      "columns_checked": 12,
+      "records_count": 2400,
+      "columns_found": ["Date", "Category", "Sales", "Units", "Region", "Brand"]
+    }
+  },
+  "summary": {
+    "total_files": 1,
+    "records_processed": 2400,
+    "columns_processed": 12,
+    "validation_checks_performed": 8,
+    "date_column_used": "Date",
+    "fiscal_start_month": 4
+  },
+  "category_forecasting_specific_results": {
+    "date_column_validation": true,
+    "dimension_columns_found": 3,
+    "fiscal_year_handling": true
+  },
+  "minio_uploads": [
+    {
+      "file_key": "forecast_data",
+      "filename": "category_forecast_data.csv",
+      "minio_upload": {
+        "status": "success",
+        "bucket": "validation-files",
+        "object_name": "category_forecasting_template_20250623_1130/forecast_data/category_forecast_data.csv"
+      }
+    }
+  ],
+  "validation_log_saved": true,
+  "validation_log_id": "60f8d2e4c8b1a2d3e4f5g6h7",
+  "template_integration": {
+    "validator_atom_saved": true,
+    "classify_columns_ready": true,
+    "available_file_keys": ["forecast_data"],
+    "next_steps": {
+      "classification": "POST /classify_columns with validator_atom_id: category_forecasting_template_20250623_1130",
+      "dimensions": "POST /define_dimensions with validator_atom_id: category_forecasting_template_20250623_1130"
+    }
+  },
+  "files_processed": {
+    "forecast_data": {
+      "filename": "category_forecast_data.csv",
+      "size_bytes": 184320
+    }
+  },
+  "debug_info": {
+    "columns_after_preprocessing": ["Date", "Category", "Sales", "Units", "Region", "Brand"],
+    "validation_results_count": 8
+  }
+}
+
+Error Responses
+---------------
+HTTP 400 - Bad Request
+  - Invalid JSON format in file_keys
+  - Incorrect number of files (≠ 1)
+  - Unsupported file format
+  - Empty dataset
+  - Invalid fiscal_start_month (not in 1–12)
+  - File parsing error
+
+HTTP 500 - Internal Server Error
+-------------------------------
+{
+  "detail": "Category Forecasting validation failed: [specific error message]"
+}
+
+Category Forecasting Validation Components
+------------------------------------------
+Date Column Validation
+  - Ensures the date column exists
+  - Validates format, continuity, and presence
+
+Dimension Validation
+  - Validates existence and structure of key dimensions
+  - Checks for consistent values and hierarchy
+
+Forecasting Data Quality
+  - Detects missing, invalid, or inconsistent values
+  - Checks numeric columns for modeling suitability
+  - Assesses data for seasonal patterns and anomalies
+
+Fiscal Year Handling
+  - Validates fiscal year alignment and cross-year data
+  - Supports custom fiscal start month
+  - Ensures calendar vs fiscal integration
+
+Template Integration Features
+-----------------------------
+Schema Generation
+  - Auto-detects column names and types
+  - Applies intelligent type inference
+
+Metadata and Tagging
+  - Marks validator atom as category forecasting template
+  - Stores relevant metadata for workflow use
+
+Workflow Preparation
+  - Enables:
+    * Column classification
+    * Business dimension setup
+  - Full readiness for downstream forecast modeling
+
+Key Features
+------------
+✓ Specialized category forecasting validation  
+✓ Time-series and fiscal year aware  
+✓ Full MongoDB and MinIO integration  
+✓ Automatic setup for classification/dimension flows  
+✓ Domain-specific rule checks for data readiness
+
+Use Cases
+---------
+- Category Forecasting project onboarding
+- Business planning and demand forecasting
+- Template-based validation setup
+- Forecasting workflow initialization
+- Data QA for downstream statistical models
+
+Validation Standards
+--------------------
+Follows forecasting industry standards including:
+  - Seasonal pattern handling
+  - Fiscal-to-calendar year alignment
+  - Categorical dimension consistency
+  - Time-series data completeness
+
+Next Steps Integration
+----------------------
+Included in the `next_steps` response block:
+  - POST /classify_columns
+  - POST /define_dimensions
+  - Ready for forecasting analysis or export
+
+Debug Information
+-----------------
+Returned for diagnostics:
+  - `columns_after_preprocessing`
+  - `validation_results_count`
+  - Processed file size
+
+
+
+
+POST: /validate_promo - Promo Intensity Template Validation
+===========================================================
+
+Purpose
+-------
+Validates a single promotional intensity dataset and initializes the complete validation workflow. 
+Applies promo-specific validation rules, generates schema, and prepares data for classification 
+and dimension definition workflows.
+
+Input Parameters
+----------------
+Form Data:
+
+1. files (required, List[UploadFile])
+   - Exactly 1 file (.csv or .xlsx)
+   - Must contain valid promotional intensity data
+   - File must not be empty
+
+2. file_keys (required, string)
+   - JSON array with exactly 1 key (e.g., ["promo"])
+   - Key identifies the dataset
+
+Example Input
+-------------
+files: [promo_data.csv]  
+file_keys: ["promo"]
+
+Process Flow
+------------
+1. Input Validation and Parsing
+   - Parses file_keys JSON
+   - Verifies file count and file key match
+   - Checks file format (.csv or .xlsx)
+   - Ensures file is not empty
+
+2. File Processing and Column Preprocessing
+   - Loads the file into a pandas DataFrame
+   - Strips whitespace from column names (preserves structure)
+   - Promo validator handles internal standardization
+
+3. Promo Intensity Validation
+   - Runs `validate_promo_intensity()` to perform:
+     * Required column checks (Promo_Flag, Date, Price, etc.)
+     * Time granularity analysis
+     * Promotion activity indicator validation
+     * Base vs promo price consistency validation
+     * Aggregator/grouping column validation
+     * Promo-specific business rule checks
+
+4. Auto-Generated Validator Atom Creation
+   - On successful validation:
+     * Generates `promo_template_YYYYMMDD_HHMMSS` ID
+     * Extracts schema: columns + types
+     * Tags metadata as Promo template
+
+5. MinIO File Storage
+   - Uploads file only if validation passes
+   - File stored as: `validator_atom_id/file_key/filename`
+   - MinIO metadata is returned
+
+6. MongoDB Integration
+   - Stores:
+     * Validator atom with schema
+     * Validation log with promo-specific stats
+     * Metadata for classification/dimension readiness
+
+Output Response
+---------------
+Success Response (HTTP 200)
+---------------------------
+{
+  "overall_status": "passed",
+  "validation_type": "promo_template",
+  "validator_atom_id": "promo_template_20250623_1130",
+  "file_validation_results": {
+    "promo": {
+      "status": "passed",
+      "errors": [],
+      "warnings": [],
+      "successes": [
+        "Required columns validated successfully",
+        "Time granularity detected and validated",
+        "Promotion indicators found and validated",
+        "Price columns structure confirmed",
+        "Aggregator columns identified"
+      ],
+      "columns_checked": 15,
+      "records_count": 5200,
+      "columns_found": ["Date", "Product_ID", "Promo_Flag", "Base_Price", "Promo_Price", "Volume", "Region"]
+    }
+  },
+  "summary": {
+    "total_files": 1,
+    "records_processed": 5200,
+    "columns_processed": 15,
+    "validation_checks_performed": 12
+  },
+  "promo_specific_results": {
+    "required_columns_validated": 5,
+    "time_granularity_detected": true,
+    "promotion_indicators_found": 3,
+    "price_columns_validated": 4,
+    "aggregator_columns_found": 2
+  },
+  "minio_uploads": [
+    {
+      "file_key": "promo",
+      "filename": "promo_data.csv",
+      "minio_upload": {
+        "status": "success",
+        "bucket": "validation-files",
+        "object_name": "promo_template_20250623_1130/promo/promo_data.csv"
+      }
+    }
+  ],
+  "validation_log_saved": true,
+  "validation_log_id": "60f8d2e4c8b1a2d3e4f5g6h7",
+  "files_processed": {
+    "promo": {
+      "filename": "promo_data.csv",
+      "size_bytes": 456789
+    }
+  },
+  "template_integration": {
+    "validator_atom_saved": true,
+    "classify_columns_ready": true,
+    "available_file_keys": ["promo"],
+    "next_steps": {
+      "classification": "POST /classify_columns with validator_atom_id: promo_template_20250623_1130",
+      "dimensions": "POST /define_dimensions with validator_atom_id: promo_template_20250623_1130"
+    }
+  }
+}
+
+Error Responses
+---------------
+HTTP 400 - Bad Request
+  - Invalid JSON in file_keys
+  - Incorrect number of files (≠ 1)
+  - Unsupported file formats
+  - Empty dataset
+  - File parsing failure
+
+HTTP 500 - Internal Server Error
+-------------------------------
+{
+  "detail": "Promo validation failed: [specific error message]"
+}
+
+Promo Intensity Validation Components
+-------------------------------------
+Required Columns Validation
+  - Ensures core fields like Promo_Flag, Base_Price, etc. are present
+  - Validates completeness and structure
+
+Time Granularity Detection
+  - Detects temporal resolution (e.g., daily/weekly)
+  - Validates continuity and consistency of Date fields
+
+Promotion Indicators Validation
+  - Identifies active promo flags and time periods
+  - Ensures flag consistency and completeness
+
+Price Columns Validation
+  - Validates structure of Base vs Promo Price
+  - Checks logical consistency (Promo_Price ≤ Base_Price)
+  - Handles currency validation if applicable
+
+Aggregator Columns Validation
+  - Detects group-by or rollup columns (e.g., Region, Product_ID)
+  - Validates structural readiness for aggregation
+
+Template Integration Features
+-----------------------------
+Automatic Schema Generation
+  - Detects column names and types
+  - Marks validator atom as Promo template
+
+Metadata Enrichment
+  - Includes promo-specific tags and statistics
+
+Workflow Preparation
+  - Enables:
+    * Column classification
+    * Business dimension definition
+  - Ready for downstream promotional modeling
+
+Key Features
+------------
+✓ Promo-specific validation logic  
+✓ Time and price consistency checks  
+✓ Minimal preprocessing (structure preserved)  
+✓ MinIO and MongoDB integration  
+✓ Workflow ready: classify, define dimensions  
+
+Use Cases
+---------
+- Promo effectiveness analysis  
+- Marketing campaign validation  
+- Pricing strategy evaluation  
+- Promotional impact studies  
+- Volume lift and elasticity testing  
+
+Validation Standards
+--------------------
+Based on industry standards for:
+  - Promotional lift measurement
+  - Price elasticity modeling
+  - Campaign targeting and outcome assessment
+
+Next Steps Integration
+----------------------
+Included in `next_steps` block of response:
+  - POST /classify_columns
+  - POST /define_dimensions
+  - Promo model readiness
+
+Performance Metrics
+-------------------
+  - Validation checks performed
+  - Columns/records processed
+  - File size and parsing time
+
+
+
+Databases - 
+
+MongoDB Operations Summary - AtoM Validation System
+==================================================
+
+Configuration
+-------------
+Database:
+  validator_atoms_db
+
+Connection URI:
+  mongodb://admin_dev:pass_dev@10.2.1.65:9005/
+
+Collections:
+  - validator_atoms
+  - column_classifications
+  - business_dimensions_with_assignments
+  - validation_logs
+  - validation_config
+
+Core Functions
+--------------
+Validator Atoms
+---------------
+save_validator_atom_to_mongo(validator_atom: dict)
+  - Stores complete validator atom (schema, metadata, template tags)
+  - Automatically injects `created_at` and `updated_at` timestamps
+
+get_validator_atom_from_mongo(validator_atom_id: str) → dict | None
+  - Retrieves validator atom data using its ID
+
+update_validator_atom_in_mongo(validator_atom_id: str, updates: dict)
+  - Updates specific fields in an existing validator atom
+  - Also updates `updated_at` timestamp
+
+Column Classifications
+----------------------
+save_classification_to_mongo(validator_atom_id: str, file_key: str, classification_data: dict)
+  - Saves classification results
+  - Document _id format: `{validator_atom_id}_{file_key}_classification`
+
+get_classification_from_mongo(validator_atom_id: str, file_key: str) → dict | None
+  - Retrieves classification data for given validator + file key
+
+Business Dimensions
+-------------------
+save_business_dimensions_to_mongo(validator_atom_id: str, file_key: str, dimensions_data: dict)
+  - Saves defined dimensions (grouping, metric, identifier flags)
+
+get_business_dimensions_from_mongo(validator_atom_id: str, file_key: str) → dict | None
+  - Retrieves stored business dimension definitions
+
+update_business_dimensions_assignments_in_mongo(validator_atom_id: str, file_key: str, updates: dict)
+  - Updates identifier and dimension assignments for existing config
+
+Validation Operations
+---------------------
+save_validation_config_to_mongo(validator_atom_id: str, file_key: str, rules: list)
+  - Stores custom validation conditions (numeric range, list, regex, etc.)
+
+get_validation_config_from_mongo(validator_atom_id: str, file_key: str) → list
+  - Retrieves validation configuration rules for a file
+
+save_validation_log_to_mongo(log_data: dict)
+  - Logs each validation attempt (status, summary, metrics)
+  - Includes:
+    * validator_atom_id
+    * file_key
+    * validation result (errors, warnings, corrections)
+    * upload results (if applicable)
+
+Key Features
+------------
+✓ Automatic Timestamping
+  - `created_at` and `updated_at` fields injected on insert/update
+
+✓ Upsert Support
+  - Most save/update functions use upsert for insert-or-update flexibility
+
+✓ Graceful Degradation
+  - On MongoDB failure:
+    * Returns {"status": "error"}
+    * Fallbacks to memory or local disk if implemented
+
+✓ Document ID Conventions
+  - Column Classification: `{validator_atom_id}_{file_key}_classification`
+  - Business Dimensions: `{validator_atom_id}_{file_key}_dimensions`
+  - Validation Logs: autogenerated ObjectId with timestamp
+
+✓ Robust Connection Handling
+  - 5-second timeout for connection check
+  - Retry/fallback strategy recommended for production
+
+✓ Error Logging
+  - All Mongo operations wrapped with try/except
+  - Failures are logged with context (which collection, key, and reason)
+
+Use Cases
+---------
+- Persisting validator configuration templates
+- Tracking column classification per dataset
+- Defining business dimensions and identifier roles
+- Logging validation attempts and storing audit trails
+- Managing custom validation rules (numeric range, regex, etc.)
+
+Sample Workflow
+---------------
+1. POST /validate or /validate_mmm triggers:
+   → save_validator_atom_to_mongo
+   → save_validation_log_to_mongo
+
+2. POST /classify_columns triggers:
+   → save_classification_to_mongo
+
+3. POST /define_dimensions triggers:
+   → save_business_dimensions_to_mongo
+
+4. GET endpoints retrieve validator metadata and configuration:
+   → get_validator_atom_from_mongo
+   → get_classification_from_mongo
+   → get_business_dimensions_from_mongo
+
+
+
+MinIO Operations Summary - AtoM Validation System
+=================================================
+
+Configuration
+-------------
+Endpoint:
+  http://10.2.1.65:9003 (insecure HTTP)
+
+Credentials:
+  - Access Key: admin_dev
+  - Secret Key: pass_dev
+
+Bucket:
+  validated-d1
+
+Core Functions
+--------------
+Connection Management
+---------------------
+check_minio_bucket()
+  - Validates connection to MinIO
+  - Ensures specified bucket (validated-d1) is accessible
+  - Runs automatically at system startup or validation init
+
+File Upload
+-----------
+upload_to_minio(file_content_bytes, filename, validator_atom_id, file_key) → dict
+  - Uploads validated file to MinIO bucket
+  - Constructs object path as:
+      `{validator_atom_id}/{file_key}/{timestamp}_{filename}`
+  - Uploads as binary stream with content-type: `application/octet-stream`
+  - Returns:
+      {
+        "status": "success",
+        "bucket": "validated-d1",
+        "object_name": "...",
+        "url": "http://10.2.1.65:9003/validated-d1/{object_name}",
+        "etag": "...",
+        "size_bytes": ...
+      }
+
+Key Features
+------------
+✓ Conditional Uploads
+  - Upload triggered **only** if validation result is "passed" or "passed_with_warnings"
+
+✓ Timestamped Object Naming
+  - Uses `YYYYMMDD_HHMMSS` format to ensure uniqueness and traceability
+  - Example: `promo_template_20250623_1130/promo/20250623_113041_promo_data.csv`
+
+✓ Organized Storage
+  - Hierarchical object structure:
+    `bucket/validator_atom_id/file_key/timestamp_filename`
+  - Promotes ease of retrieval and audit logging
+
+✓ Error Handling
+  - Separate handling for:
+    * `S3Error` (MinIO-specific)
+    * General exceptions (I/O, encoding, network)
+
+✓ Efficient Memory Handling
+  - Uses `BytesIO` to stream file content into MinIO without writing to disk
+
+✓ Metadata Ready
+  - Upload result includes ETag, size, and constructed access URL
+
+Upload Workflow
+---------------
+1. Validation Endpoint triggered
+   → File read and processed into bytes
+
+2. Object name generated:
+   → `{validator_atom_id}/{file_key}/{timestamp}_{filename}`
+
+3. File uploaded via `upload_to_minio(...)`
+   → Response includes status, URL, and metadata
+
+4. Upload results included in API response and saved in validation log
+
+Integration
+-----------
+Upload Triggered By:
+  - POST /validate
+  - POST /validate_mmm
+  - POST /validate_category_forecasting
+  - POST /validate_promo
+
+Storage Path Format:
+  validated-d1/{validator_atom_id}/{file_key}/{timestamp}_{filename}
+
+Access URL Format:
+  http://10.2.1.65:9003/validated-d1/{validator_atom_id}/{file_key}/{timestamp}_{filename}
+
+Use Cases
+---------
+- Automatically store validated files for traceability
+- Enable external access for downstream processing
+- Maintain clean audit trail of validated uploads
+- Power dashboard previews or manual QA reviews
+
