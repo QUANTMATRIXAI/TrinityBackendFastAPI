@@ -1,0 +1,169 @@
+STEP 1: POST /classify_columns – Auto Classify Columns into Identifiers, Measures, or Unclassified
+==================================================================================================
+
+📌 Purpose:
+- Automatically classifies dataset columns into identifiers, measures, and unclassified.
+- Supports user override and saves structured classifications for further usage in dimensions and filters.
+
+🔧 What It Does:
+- Loads schema from a validator atom (identified by validator_atom_id and file_key).
+- Applies keyword-based heuristics (e.g., "week", "sales", "brand") to classify columns.
+- Accepts optional manual classification input to override auto detection.
+- Calculates confidence scores and validates all column classifications.
+- Persists results to MongoDB and in-memory cache.
+
+✅ Output:
+- Final classification object with:
+  • Identifiers
+  • Measures
+  • Unclassified
+  • Confidence scores
+  • Summary counts
+- Used downstream in dimension creation and assignment.
+
+---
+
+
+STEP 2: POST /define_dimensions – Define Business Dimensions for a Dataset
+==========================================================================
+
+📌 Purpose:
+- Define up to 4 business-relevant dimensions (e.g., Time, Market, Product) for a dataset.
+- Creates a framework for organizing identifiers meaningfully.
+
+🔧 What It Does:
+- Accepts dimension objects (ID + name) via JSON.
+- Validates structure (no duplicates, max 4 allowed).
+- Associates each dimension with a file_key inside the validator atom.
+- Saves to MongoDB and optionally to in-memory storage for quick reference.
+
+✅ Output:
+- Structured list of dimension IDs and names.
+- Counts, validation status, and next-step guidance.
+
+---
+
+
+STEP 3: POST /assign_identifiers_to_dimensions – Assign Identifiers to Defined Dimensions
+==========================================================================================
+
+📌 Purpose:
+- Link classified identifiers to one or more user-defined business dimensions.
+- Enables downstream filters, grouping, and semantic alignment.
+
+🔧 What It Does:
+- Validates that all dimensions and identifiers exist.
+- Ensures identifiers are assigned to only one dimension (no duplicates).
+- Saves mappings to MongoDB and in-memory cache.
+- Adds timestamp and dimensional breakdown.
+
+✅ Output:
+- Updated business dimension structure with assignments.
+- Summary of assignment statistics and validation state.
+- Hints for next steps (e.g., view full setup, export config).
+
+---
+
+🧩 Use in Workflow:
+These three endpoints form the metadata layer required to:
+- Interpret columns correctly
+- Support filtered queries
+- Drive business logic
+- Power explainable ML models
+
+Errors:
+-------
+- 400: Input validation failed (e.g., bad JSON, wrong columns, duplicates)
+- 404: Missing validator or file key
+- 500: MongoDB failure
+
+
+MongoDB Infrastructure – Data Classification Atom
+=================================================
+
+Overview:
+---------
+This Atom uses MongoDB as its primary persistence layer to store all metadata and user inputs related to:
+• Validator schemas (validator atoms)
+• Column classifications (identifiers, measures)
+• Business dimension setup and identifier assignments
+
+Configuration (from `config.py`):
+----------------------------------
+- `mongo_uri`: MongoDB connection string  
+- `classification_database`: Main database → `validator_atoms_db`
+- Collections:
+  • `validator_atoms` — dataset schemas and metadata
+  • `column_classifications` — stores classification results
+  • `business_dimensions_with_assignments` — stores dimensions and identifier assignments
+
+Collections Summary:
+--------------------
+
+1. **validator_atoms**
+   - Stores uploaded dataset schema and column metadata
+   - Used by `/classify_columns` and `/define_dimensions`
+   - Document key: `_id = validator_atom_id`
+   - Contains:
+     • schemas (per file_key)
+     • column_types
+     • template_type
+
+2. **column_classifications**
+   - Stores auto-classified and user-overridden column roles
+   - Keyed by `{validator_atom_id}_{file_key}_classification`
+   - Fields:
+     • final_classification: identifiers, measures, unclassified
+     • auto_classification: derived by system
+     • confidence_scores
+     • timestamp, validator_type
+
+3. **business_dimensions_with_assignments**
+   - Captures defined business dimensions and mappings
+   - Keyed by `{validator_atom_id}_{file_key}_dimensions`
+   - Fields:
+     • dimensions (ID, name, assigned identifiers)
+     • assignment timestamps
+     • dimension count, assignment_completed flag
+
+Persistence Functions:
+----------------------
+
+- `get_validator_atom_from_mongo(id)`
+  → Fetch schema info by validator ID
+
+- `save_classification_to_mongo(validator_id, file_key, data)`
+  → Save full column classification record
+
+- `get_classification_from_mongo(validator_id, file_key)`
+  → Retrieve classification details for identifier assignment
+
+- `save_business_dimensions_to_mongo(validator_id, file_key, dims_dict)`
+  → Save or update business dimension definitions
+
+- `get_business_dimensions_from_mongo(validator_id, file_key)`
+  → Retrieve current dimension state before assigning identifiers
+
+- `update_business_dimensions_assignments_in_mongo(...)`
+  → Assign identifiers to defined dimensions and persist
+
+- `test_mongodb_operations()`
+  → Lists available databases and collections for validation/debug
+
+Validation Tools:
+-----------------
+- `GET /debug/mongodb`  
+  → Confirms connectivity and lists collection names
+
+- `GET /debug/collections_detailed`  
+  → Shows document counts for required collections
+
+Best Practices:
+---------------
+• All Mongo operations are wrapped in error handling  
+• MongoDB `_id` strategy ensures unique document per validator+file  
+• Fallback retrieval from memory/disk supported (legacy compatibility)  
+• Classification must precede dimension creation  
+• All assignments must be valid, non-duplicate identifiers
+
+This MongoDB backend is critical for tracking model context, metadata, and user configuration throughout the Data Classification workflow.
