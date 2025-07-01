@@ -58,6 +58,7 @@ async def fetch_measures_list(
 import pandas as pd
 from minio import Minio
 from io import BytesIO
+from minio.error import S3Error
 
 minio_client = Minio(
     "minioapi.quantmatrixai.com",
@@ -76,3 +77,19 @@ def get_minio_df(bucket_name: str, object_names: str) -> pd.DataFrame:
     else:
         raise ValueError("Unsupported file type")
     return df
+
+
+
+async def upload_fileobj_to_minio(bucket_name: str, object_name: str, file_obj: BytesIO, content_type: str = "application/octet-stream"):
+    try:
+        file_obj.seek(0)
+        minio_client.put_object(
+            bucket_name=bucket_name,
+            object_name=object_name,
+            data=file_obj,
+            length=-1,
+            part_size=10*1024*1024,
+            content_type=content_type
+        )
+    except S3Error as e:
+        raise Exception(f"MinIO upload failed: {e}")

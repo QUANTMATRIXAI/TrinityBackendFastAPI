@@ -1,0 +1,176 @@
+'''
+
+
+
+Name of Atom: feature_overview
+Small Description:
+The feature_overview Atom gives a complete snapshot of your dataset by analyzing how it's spread across different markets, products, and time periods. It helps you understand your data before applying any modeling or analytics.
+Keywords:
+data overview, dataset summary, feature profiling, market-product analysis, data readiness, AI prompt, EDA, unique combinations, business dimensions
+Working Process (User View):
+When a user sends a prompt like:
+“Give me a summary of this sales data file and tell me if it’s good for forecasting.”
+The AI agent automatically triggers the feature_overview Atom in the background. Here’s what happens behind the scenes:
+You Upload Your Dataset
+You either provide a file or refer to an existing one (like monthly_sales.csv), and tell the system what columns represent market, product, and time (e.g., region, category, month).
+The Tool Starts Exploring the Data
+Without asking you anything more, the Atom:
+Reads your file from the system.
+Looks at all combinations of markets, products, and time periods.
+Checks how much data is available for each combination.
+Identifies missing or incomplete segments.
+Calculates summary statistics like totals, averages, min/max, and how often each value appears.
+You Instantly Get a Smart Summary
+The AI agent replies with:
+What the key data segments are (e.g., "North + Tractor + Jan").
+Which ones are missing or incomplete.
+What the numbers look like overall (e.g., average sales, most common promo flag).
+Whether the data looks usable for modeling.
+You don’t need to run any technical commands or API calls. The Atom works quietly in the background and gives you a clean answer in natural language, based on the data structure.
+Output / What We Get:
+This Atom generates:
+A list of all unique combinations of market, product, and time — to show where your data is complete or missing.
+A summary table of numbers (like sales averages) and text fields (like most frequent promo types).
+An overall assessment of how rich or usable the data is.
+This output is presented in the agent’s response, often with optional charts or breakdowns. It helps users:
+Know what part of the data is trustworthy.
+Pick the best segment for forecasting.
+Spot areas that need cleaning or filling.
+Detailed Explanation:
+The feature_overview Atom is designed as a first step in any data analysis process. Think of it as an automatic health check of your data.
+Why Use It?
+Before building forecasts, pricing models, or recommendations, it’s important to know:
+Which combinations of market and product have enough data.
+Whether you’re missing time periods.
+If there are outliers or strange patterns.
+Whether the numeric fields look stable and clean.
+Instead of making you write code or build dashboards, this Atom lets you get those answers just by asking the AI assistant in plain language.
+Real-World Examples:
+Prompt:
+“Check if the retail sales file is ready for model building.”
+Output Explanation:
+“There are 15 combinations of region and category. 3 of them have missing months. The average sales per region-category is 23,000 units, with a max of 87,000. The most common promotion flag is ‘None’. This data is suitable for forecasting if you focus on Region A and Category 1.”
+Prompt:
+“Summarize the uploaded data and show the most complete combinations.”
+Output Explanation:
+“The combination ‘North + Fertilizer + 2023’ has full coverage with zero missing rows. However, ‘West + Tractor’ is missing Q2 and Q3 of 2023. Consider excluding it from modeling.”
+How It Works Technically (Simplified):
+It reads your dataset and figures out which columns represent markets, products, and time.
+It checks how many unique combinations exist and counts rows in each.
+For each combination, it summarizes numeric fields (like sales, discount) and text fields (like product type, promo flag).
+It stores all this info internally and gives a quick summary through the AI interface.
+Best Practices:
+Use columns that make sense for market, product, and time — don’t pick overly detailed ones (e.g., full SKU code) unless needed.
+Start with this Atom before using Create, Transform, or Forecasting Atoms.
+If the AI says “many missing rows,” consider cleaning or enriching the data first.
+
+
+
+'''
+
+
+
+🔹 POST Endpoints
+1. POST /uniquecount
+Purpose:
+Computes the count of unique values for all columns (or dimension-based subsets) in the uploaded datasets.
+
+Inputs (via multipart/form-data):
+
+bucket_name (str): Name of the MinIO bucket where input files are stored.
+
+object_names (List[str]): List of file names (e.g., CSV or Excel) to fetch from MinIO.
+
+validator_atom_id (str): Unique identifier for the current validation process.
+
+file_key (str): Key under which dimension metadata is associated in MongoDB.
+
+Process:
+
+Fetches dimension metadata using validator_atom_id and file_key.
+
+Loads and merges all provided data files from MinIO.
+
+Computes unique counts using run_unique_count() based on the dimension structure.
+
+Saves a trimmed version of the result to MongoDB (results_collection).
+
+Returns:
+
+A JSON response containing status (summary of result) and the dimensions used.
+
+2. POST /summary
+Purpose:
+Performs a feature overview by generating summary statistics, optionally for a specific hierarchy combination or including hierarchy structure generation.
+
+Inputs (via multipart/form-data):
+
+bucket_name (str): MinIO bucket name.
+
+object_names (List[str]): File names to read from MinIO.
+
+validator_atom_id (str): ID to link to dimension metadata in MongoDB.
+
+file_key (str): Key under which the file is associated.
+
+create_hierarchy (bool): If True, hierarchy structure will be built from the data.
+
+create_summary (bool): If True, summary statistics will be calculated.
+
+combination (str, JSON-encoded dictionary): Optional filter to run the summary for a specific combination (e.g., a single brand-market-channel combo).
+
+Process:
+
+Fetches dimension metadata.
+
+Loads and merges input files from MinIO.
+
+Calls run_feature_overview() with the merged data and options.
+
+Stores the processed result (excluding raw DataFrames) into MongoDB.
+
+Returns:
+
+JSON response with high-level status and the dimensions used for summary.
+
+🔹 GET Endpoints (Updated: Results should come from MongoDB)
+3. GET /unique_dataframe_results
+Purpose:
+Retrieve the saved result of the unique count operation from MongoDB for inspection or downstream use.
+
+Updated Implementation Plan:
+
+Query MongoDB collection results_collection where validator_atom_id and file_key match.
+
+Extract only the unique_result.object_summary (or other required fields).
+
+Convert DataFrame portions to dictionary records before returning.
+
+Returns:
+
+A dictionary with the stored unique count result (e.g., column-wise unique value counts).
+
+4. GET /results
+Purpose:
+Fetch the feature overview summary results saved during the /summary POST call.
+
+Updated Implementation Plan:
+
+Pull from MongoDB using the same validator_atom_id and file_key.
+
+Return fields such as:
+
+result.dimensions_used
+
+result.excluded_columns
+
+result.unique_combinations
+
+detailed_summary (as dict, if not too large).
+
+Returns:
+
+A structured dictionary representing the stored summary and metadata.
+
+
+
