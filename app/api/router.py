@@ -7,7 +7,7 @@ from app.features.feature_transform.endpoint import router as transform_router
 from app.features.feature_create.endpoint import router as create_router
 from app.features.data_upload_validate.Validate_Atom.app.routes import router as validate_router
 from app.features.column_classify.routes import router as classify_router
-
+from app.features.explore.explore_Atom.routes import router as explore_router
 
 api_router = APIRouter()
 text_router  = APIRouter()
@@ -22,3 +22,4 @@ api_router.include_router(create_router)
 
 api_router.include_router(validate_router)
 api_router.include_router(classify_router)
+api_router.include_router(explore_router)
